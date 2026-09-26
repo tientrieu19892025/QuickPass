@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>title</key>
+	<string>Credit &amp; Thông tin</string>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>QuickPass 1.2.0</string>
+			<key>footerText</key>
+			<string>Nút bấm tiện lợi giúp bạn nhập ngay mật khẩu số trên các thiết bị Face ID mà không cần quét hay vuốt màn hình.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Tác giả (Developer)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Jinken Nguyen - 1989 (GitHub)</string>
+			<key>action</key>
+			<string>openURL:</string>
+			<key>url</key>
+			<string>https://github.com/jinkennguyen</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Mã nguồn dự án (Source Code)</string>
+			<key>action</key>
+			<string>openURL:</string>
+			<key>url</key>
+			<string>https://github.com/tientrieu19892025/QuickPass</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Ủng hộ tác giả (Donate)</string>
+			<key>footerText</key>
+			<string>MB Bank - 0345140889 - Nguyễn Tiến Triều
+Nếu bạn thấy tweak hữu ích, hãy donate giúp tác giả duy trì và phát triển nhiều tweak hay.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Tri ân cộng đồng (Special Thanks)</string>
+			<key>footerText</key>
+			<string>Theos team · ElleKit · Dopamine by opa334 · palera1n team · r/jailbreak community.</string>
+		</dict>
+	</array>
+</dict>
+</plist>

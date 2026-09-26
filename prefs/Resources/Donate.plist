@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>title</key>
+	<string>Ủng hộ tác giả (Donate)</string>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Ủng hộ phát triển (Support Project)</string>
+			<key>footerText</key>
+			<string>Nếu bạn thấy tweak hữu ích, hãy donate giúp tác giả duy trì và phát triển nhiều tweak hay qua MB Bank - 0345140889 - Nguyễn Tiến Triều.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>MB Bank: 0345140889 (Chạm để sao chép STK)</string>
+			<key>action</key>
+			<string>copyAccount</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Sao chép toàn bộ thông điệp Donate</string>
+			<key>action</key>
+			<string>copyMessage</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Quốc tế (International)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Ko-fi</string>
+			<key>action</key>
+			<string>openURL:</string>
+			<key>url</key>
+			<string>https://ko-fi.com/jinkennguyen</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>PayPal</string>
+			<key>action</key>
+			<string>openURL:</string>
+			<key>url</key>
+			<string>https://paypal.me/jinkennguyen</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Buy Me a Coffee</string>
+			<key>action</key>
+			<string>openURL:</string>
+			<key>url</key>
+			<string>https://buymeacoffee.com/jinkennguyen</string>
+		</dict>
+	</array>
+</dict>
+</plist>

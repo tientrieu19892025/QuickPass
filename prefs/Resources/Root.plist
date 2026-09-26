@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>title</key>
+	<string>QuickPass</string>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>headerCellClass</key>
+			<string>QPHeaderCell</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Cài đặt chung (General)</string>
+			<key>footerText</key>
+			<string>Thêm nút bấm mở nhanh bàn phím mật mã số ngay trên Màn hình khoá cho thiết bị Face ID, không cần chờ Face ID quét thất bại hay vuốt màn hình. Tự động áp dụng ngay.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.jinken.quickpass</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>label</key>
+			<string>Bật QuickPass (Enable)</string>
+			<key>PostNotification</key>
+			<string>com.jinken.quickpass/SettingsChanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.jinken.quickpass</string>
+			<key>key</key>
+			<string>allowDrag</string>
+			<key>label</key>
+			<string>Kéo thả di chuyển trực tiếp</string>
+			<key>PostNotification</key>
+			<string>com.jinken.quickpass/SettingsChanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.jinken.quickpass</string>
+			<key>key</key>
+			<string>haptic</string>
+			<key>label</key>
+			<string>Rung phản hồi (Haptic Feedback)</string>
+			<key>PostNotification</key>
+			<string>com.jinken.quickpass/SettingsChanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.jinken.quickpass</string>
+			<key>key</key>
+			<string>specularGlow</string>
+			<key>label</key>
+			<string>Viền phát sáng (Specular Rim)</string>
+			<key>PostNotification</key>
+			<string>com.jinken.quickpass/SettingsChanged</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Thiết kế &amp; Vị trí nút (Appearance &amp; Position)</string>
+			<key>footerText</key>
+			<string>Chạm giữ 0.3s nút trên Màn hình khoá để kéo thả vị trí tự do, hoặc chọn vị trí định sẵn bên trên.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>com.jinken.quickpass</string>
+			<key>key</key>
+			<string>positionPreset</string>
+			<key>label</key>
+			<string>Vị trí mặc định (Position)</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>validTitles</key>
+			<array>
+				<string>Ở giữa phía dưới (Giữa Đèn &amp; Camera)</string>
+				<string>Dưới đồng hồ (Below Clock)</string>
+				<string>Góc dưới bên phải (Bottom Right)</string>
+				<string>Góc dưới bên trái (Bottom Left)</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>1</integer>
+				<integer>2</integer>
+				<integer>3</integer>
+			</array>
+			<key>PostNotification</key>
+			<string>com.jinken.quickpass/SettingsChanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>com.jinken.quickpass</string>
+			<key>key</key>
+			<string>buttonStyle</string>
+			<key>label</key>
+			<string>Phong cách đồ hoạ (Style)</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>validTitles</key>
+			<array>
+				<string>Kính lỏng 3D (Liquid Glass)</string>
+				<string>Mờ tối (Frosted Dark)</string>
+				<string>Trong suốt (Ultra Clear)</string>
+				<string>Màu khối nổi bật (Solid Accent)</string>
+				<string>Dạng thanh chữ (Pill "Passcode")</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>1</integer>
+				<integer>2</integer>
+				<integer>3</integer>
+				<integer>4</integer>
+			</array>
+			<key>PostNotification</key>
+			<string>com.jinken.quickpass/SettingsChanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>com.jinken.quickpass</string>
+			<key>key</key>
+			<string>iconType</string>
+			<key>label</key>
+			<string>Biểu tượng nút (Icon)</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>validTitles</key>
+			<array>
+				<string>Bàn phím số 9 chấm (Keypad Grid)</string>
+				<string>Ổ khoá bảo mật (Lock Icon)</string>
+				<string>Khiên an toàn (Shield)</string>
+				<string>Chạm số (Touch Digit)</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>1</integer>
+				<integer>2</integer>
+				<integer>3</integer>
+			</array>
+			<key>PostNotification</key>
+			<string>com.jinken.quickpass/SettingsChanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>default</key>
+			<real>50.0</real>
+			<key>defaults</key>
+			<string>com.jinken.quickpass</string>
+			<key>key</key>
+			<string>buttonSize</string>
+			<key>label</key>
+			<string>Kích thước nút (Size)</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>validTitles</key>
+			<array>
+				<string>Nhỏ gọn (44 px)</string>
+				<string>Chuẩn Apple (50 px - Đẹp nhất)</string>
+				<string>Lớn dễ chạm (58 px)</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<real>44.0</real>
+				<real>50.0</real>
+				<real>58.0</real>
+			</array>
+			<key>PostNotification</key>
+			<string>com.jinken.quickpass/SettingsChanged</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Hỗ trợ &amp; Tác giả (Support &amp; Credit)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>detail</key>
+			<string>QPDonateController</string>
+			<key>isController</key>
+			<true/>
+			<key>label</key>
+			<string>Ủng hộ tác giả (Donate - MB Bank)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>detail</key>
+			<string>QPAboutController</string>
+			<key>isController</key>
+			<true/>
+			<key>label</key>
+			<string>Tác giả &amp; Thông tin (Credits)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Đặt lại vị trí mặc định ban đầu</string>
+			<key>action</key>
+			<string>resetPosition</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Respring SpringBoard</string>
+			<key>action</key>
+			<string>respring</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>QuickPass 1.2.0 · Jinken Nguyen - 1989
+Donate: MB Bank - 0345140889 - Nguyễn Tiến Triều
+Hỗ trợ đầy đủ iOS 12 → 26 (Rootful, Rootless, RootHide)</string>
+		</dict>
+	</array>
+</dict>
+</plist>
