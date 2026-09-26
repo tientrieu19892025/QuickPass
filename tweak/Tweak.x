@@ -3,6 +3,20 @@
 #import "shared/QPPrefs.h"
 #import "tweak/QPGlassButtonView.h"
 
+@interface SBUIPasscodeLockViewBase : UIView
+@property (nonatomic) BOOL usesBiometricPresentation;
+- (void)setKeypadVisible:(BOOL)arg1 animated:(BOOL)arg2;
+- (void)passcodeBiometricAuthenticationViewUsePasscodeButtonHit:(id)arg1;
+- (void)_overrideBiometricMatchingEnabled:(BOOL)arg1 forReason:(id)arg2;
+@end
+
+@interface CSPasscodeViewController : UIViewController
+@property (nonatomic) BOOL useBiometricPresentation;
+@property (nonatomic) BOOL biometricButtonsInitiallyVisible;
+@property (nonatomic) BOOL showProudLock;
+- (SBUIPasscodeLockViewBase *)passcodeLockView;
+@end
+
 @interface CSCoverSheetViewController : UIViewController
 - (BOOL)isPasscodeLockVisible;
 - (void)setPasscodeLockVisible:(BOOL)arg1 animated:(BOOL)arg2;
@@ -17,21 +31,25 @@
 - (void)lockScreenViewControllerRequestsUnlock;
 @end
 
+static BOOL gBypassFaceIDForQuickPass = NO;
+
 static inline void triggerPasscodeUnlock(CSCoverSheetViewController *csvc) {
+    gBypassFaceIDForQuickPass = YES;
+
     if (csvc) {
         if ([csvc respondsToSelector:@selector(isPasscodeLockVisible)] && [csvc isPasscodeLockVisible]) {
             return;
         }
         if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:forceBiometricPresentation:completion:)]) {
-            [csvc setPasscodeLockVisible:YES animated:YES forceBiometricPresentation:NO completion:nil];
+            [csvc setPasscodeLockVisible:YES animated:NO forceBiometricPresentation:NO completion:nil];
             return;
         }
         if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:completion:)]) {
-            [csvc setPasscodeLockVisible:YES animated:YES completion:nil];
+            [csvc setPasscodeLockVisible:YES animated:NO completion:nil];
             return;
         }
         if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:)]) {
-            [csvc setPasscodeLockVisible:YES animated:YES];
+            [csvc setPasscodeLockVisible:YES animated:NO];
             return;
         }
     }
@@ -41,7 +59,7 @@ static inline void triggerPasscodeUnlock(CSCoverSheetViewController *csvc) {
         if ([mgr respondsToSelector:@selector(coverSheetViewController)]) {
             CSCoverSheetViewController *scvc = [mgr coverSheetViewController];
             if (scvc && [scvc respondsToSelector:@selector(setPasscodeLockVisible:animated:)]) {
-                [scvc setPasscodeLockVisible:YES animated:YES];
+                [scvc setPasscodeLockVisible:YES animated:NO];
                 return;
             }
         }
@@ -151,6 +169,9 @@ static inline void triggerPasscodeUnlock(CSCoverSheetViewController *csvc) {
 }
 
 - (void)setPasscodeLockVisible:(BOOL)visible animated:(BOOL)animated {
+    if (!visible) {
+        gBypassFaceIDForQuickPass = NO;
+    }
     %orig(visible, animated);
     QPGlassButtonView *btn = (QPGlassButtonView *)[self.view viewWithTag:98927];
     if (btn) {
@@ -161,6 +182,109 @@ static inline void triggerPasscodeUnlock(CSCoverSheetViewController *csvc) {
         } else {
             btn.alpha = visible ? 0.0 : 1.0;
         }
+    }
+}
+
+%end
+
+%hook CSPasscodeViewController
+
+- (BOOL)useBiometricPresentation {
+    if (gBypassFaceIDForQuickPass) {
+        return NO;
+    }
+    return %orig;
+}
+
+- (void)setUseBiometricPresentation:(BOOL)val {
+    if (gBypassFaceIDForQuickPass) {
+        %orig(NO);
+        return;
+    }
+    %orig;
+}
+
+- (void)viewDidLoad {
+    if (gBypassFaceIDForQuickPass) {
+        if ([self respondsToSelector:@selector(setUseBiometricPresentation:)]) {
+            self.useBiometricPresentation = NO;
+        }
+        if ([self respondsToSelector:@selector(setShowProudLock:)]) {
+            self.showProudLock = NO;
+        }
+        if ([self respondsToSelector:@selector(setBiometricButtonsInitiallyVisible:)]) {
+            self.biometricButtonsInitiallyVisible = NO;
+        }
+    }
+    %orig;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    if (gBypassFaceIDForQuickPass) {
+        if ([self respondsToSelector:@selector(setUseBiometricPresentation:)]) {
+            self.useBiometricPresentation = NO;
+        }
+        if ([self respondsToSelector:@selector(setShowProudLock:)]) {
+            self.showProudLock = NO;
+        }
+        if ([self respondsToSelector:@selector(setBiometricButtonsInitiallyVisible:)]) {
+            self.biometricButtonsInitiallyVisible = NO;
+        }
+    }
+    %orig;
+    if (gBypassFaceIDForQuickPass) {
+        SBUIPasscodeLockViewBase *pView = nil;
+        if ([self respondsToSelector:@selector(passcodeLockView)]) {
+            pView = [self passcodeLockView];
+        } else {
+            @try {
+                pView = [self valueForKey:@"_passcodeLockView"];
+            } @catch (__unused id ex) {}
+        }
+        if (pView) {
+            if ([pView respondsToSelector:@selector(setUsesBiometricPresentation:)]) {
+                pView.usesBiometricPresentation = NO;
+            }
+            if ([pView respondsToSelector:@selector(setKeypadVisible:animated:)]) {
+                [pView setKeypadVisible:YES animated:NO];
+            }
+            if ([pView respondsToSelector:@selector(passcodeBiometricAuthenticationViewUsePasscodeButtonHit:)]) {
+                [pView passcodeBiometricAuthenticationViewUsePasscodeButtonHit:nil];
+            }
+            [pView becomeFirstResponder];
+        }
+    }
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    %orig;
+    gBypassFaceIDForQuickPass = NO;
+}
+
+%end
+
+%hook SBUIPasscodeLockViewBase
+
+- (BOOL)usesBiometricPresentation {
+    if (gBypassFaceIDForQuickPass) {
+        return NO;
+    }
+    return %orig;
+}
+
+- (void)didMoveToWindow {
+    %orig;
+    if (gBypassFaceIDForQuickPass && self.window) {
+        if ([self respondsToSelector:@selector(setUsesBiometricPresentation:)]) {
+            self.usesBiometricPresentation = NO;
+        }
+        if ([self respondsToSelector:@selector(setKeypadVisible:animated:)]) {
+            [self setKeypadVisible:YES animated:NO];
+        }
+        if ([self respondsToSelector:@selector(passcodeBiometricAuthenticationViewUsePasscodeButtonHit:)]) {
+            [self passcodeBiometricAuthenticationViewUsePasscodeButtonHit:nil];
+        }
+        [self becomeFirstResponder];
     }
 }
 
