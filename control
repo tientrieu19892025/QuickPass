@@ -1,0 +1,25 @@
+Package: com.jinken.quickpass
+Name: QuickPass
+Depends: firmware (>= 12.0), preferenceloader, mobilesubstrate | org.coolstar.libhooker | substitute | com.ex.substitute | ellekit | org.coolstar.ellekit | science.xnu.substitute
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Nút bấm hiển thị nhanh bàn phím mật khẩu số trên Màn hình khoá cho thiết bị Face ID, không cần vuốt mở hay quét Face ID.
+ Credit: Jinken Nguyen - 1989
+ .
+ Donate: MB Bank - 0345140889 - Nguyễn Tiến Triều
+ Nếu bạn thấy tweak hữu ích, hãy donate giúp tác giả duy trì và phát triển nhiều tweak hay.
+ .
+ === Tính năng nổi bật ===
+ * Thêm nút truy cập nhanh bàn phím mật mã (Passcode) ngay trên Màn hình khoá.
+ * Bấm là bật ngay bàn phím số lập tức, không tốn thời gian Face ID quét thất bại hay phải vuốt màn hình.
+ * Hỗ trợ đặt nút ở nhiều vị trí tuỳ thích: Giữa 2 nút tắt (Center Bottom), Dưới đồng hồ, hoặc Góc màn hình.
+ * Tuỳ biến biểu tượng: Bàn phím số (Keypad), Ổ khoá (Lock), Chữ Mật mã (Passcode).
+ * Rung phản hồi Haptic khi chạm cực kỳ mượt mà.
+ * Hoàn toàn bảo mật theo chuẩn Apple: gọi trực tiếp giao diện Passcode chính chủ của hệ thống, không lưu hay can thiệp mật khẩu.
+ * Nhẹ tênh, tối ưu 100% CoreAnimation, không lag, không giật, 0% Safe Mode.
+ * Hỗ trợ đầy đủ 3 kiến trúc: Rootful, Rootless (Dopamine, palera1n) và RootHide.
+Maintainer: Jinken Nguyen - 1989
+Author: Jinken Nguyen - 1989
+Section: Tweaks
+Tag: role::tweak, compatible::ios12, compatible::ios13, compatible::ios14, compatible::ios15, compatible::ios16, compatible::ios17, compatible::ios18
+Homepage: https://github.com/jinkennguyen/quickpass
