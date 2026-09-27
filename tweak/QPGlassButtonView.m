@@ -15,9 +15,9 @@
     UIImageView *_iconImageView;
     UILabel *_pillLabel;
     
-    UITapGestureRecognizer *_tapGesture;
     UILongPressGestureRecognizer *_dragGesture;
     CGPoint _dragStartCenter;
+    BOOL _isDragging;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -25,6 +25,8 @@
     if (self) {
         self.clipsToBounds = NO; // allow shadow
         self.backgroundColor = [UIColor clearColor];
+        self.userInteractionEnabled = YES;
+        self.exclusiveTouch = YES;
 
         // Layer shadow
         self.layer.shadowColor = [UIColor blackColor].CGColor;
@@ -35,6 +37,7 @@
         // Base fill view
         _fillView = [[UIView alloc] initWithFrame:self.bounds];
         _fillView.clipsToBounds = YES;
+        _fillView.userInteractionEnabled = NO;
         [self addSubview:_fillView];
 
         // System Blur
@@ -79,21 +82,16 @@
         _pillLabel.textAlignment = NSTextAlignmentCenter;
         _pillLabel.text = @"Passcode";
         _pillLabel.hidden = YES;
+        _pillLabel.userInteractionEnabled = NO;
         [_fillView addSubview:_pillLabel];
 
-        // Gestures
-        _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
-        _tapGesture.cancelsTouchesInView = NO;
-        _tapGesture.delegate = self;
-        [self addGestureRecognizer:_tapGesture];
-
+        // Drag gesture (long press only activates when user intentionally holds to drag)
         _dragGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleDrag:)];
-        _dragGesture.minimumPressDuration = 0.28;
-        _dragGesture.allowableMovement = 12.0;
+        _dragGesture.minimumPressDuration = 0.35;
+        _dragGesture.allowableMovement = 15.0;
         _dragGesture.delegate = self;
+        _dragGesture.cancelsTouchesInView = YES;
         [self addGestureRecognizer:_dragGesture];
-
-        [_tapGesture requireGestureRecognizerToFail:_dragGesture];
 
         [self updateStyle];
     }
@@ -225,30 +223,62 @@
     [self setNeedsLayout];
 }
 
-#pragma mark - Gestures & Interactions
+#pragma mark - Direct Touch Handling (Ultra-Responsive & Zero Delay)
 
-- (void)handleTap:(UITapGestureRecognizer *)g {
-    if (g.state == UIGestureRecognizerStateEnded) {
-        if ([QPPrefs shared].haptic) {
-            if (@available(iOS 10.0, *)) {
-                UIImpactFeedbackGenerator *feed = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
-                [feed prepare];
-                [feed impactOccurred];
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [super touchesBegan:touches withEvent:event];
+    if (_isDragging) return;
+
+    [UIView animateWithDuration:0.08 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.transform = CGAffineTransformMakeScale(0.92, 0.92);
+        self.alpha = 0.85;
+    } completion:nil];
+}
+
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [super touchesMoved:touches withEvent:event];
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [super touchesEnded:touches withEvent:event];
+    if (_isDragging) return;
+
+    [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.transform = CGAffineTransformIdentity;
+        self.alpha = 1.0;
+    } completion:nil];
+
+    UITouch *t = [touches anyObject];
+    if (t) {
+        CGPoint pt = [t locationInView:self];
+        if (CGRectContainsPoint(CGRectInset(self.bounds, -12, -12), pt)) {
+            // Immediate haptic feedback
+            if ([QPPrefs shared].haptic) {
+                if (@available(iOS 10.0, *)) {
+                    UIImpactFeedbackGenerator *feed = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+                    [feed impactOccurred];
+                }
             }
-        }
-        [UIView animateWithDuration:0.1 animations:^{
-            self.transform = CGAffineTransformMakeScale(0.90, 0.90);
-        } completion:^(BOOL finished) {
-            [UIView animateWithDuration:0.15 animations:^{
-                self.transform = CGAffineTransformIdentity;
-            }];
-        }];
 
-        if (self.onTap) {
-            self.onTap();
+            // Immediately invoke callback without waiting for gesture recognizer
+            if (self.onTap) {
+                self.onTap();
+            }
         }
     }
 }
+
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [super touchesCancelled:touches withEvent:event];
+    if (_isDragging) return;
+
+    [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.transform = CGAffineTransformIdentity;
+        self.alpha = 1.0;
+    } completion:nil];
+}
+
+#pragma mark - Drag Gesture (Long Press)
 
 - (void)handleDrag:(UILongPressGestureRecognizer *)g {
     if (![QPPrefs shared].allowDrag) return;
@@ -257,11 +287,11 @@
 
     switch (g.state) {
         case UIGestureRecognizerStateBegan: {
+            _isDragging = YES;
             _dragStartCenter = self.center;
             if ([QPPrefs shared].haptic) {
                 if (@available(iOS 10.0, *)) {
                     UIImpactFeedbackGenerator *feed = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
-                    [feed prepare];
                     [feed impactOccurred];
                 }
             }
@@ -277,6 +307,7 @@
         }
         case UIGestureRecognizerStateEnded:
         case UIGestureRecognizerStateCancelled: {
+            _isDragging = NO;
             [UIView animateWithDuration:0.25 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.4 options:0 animations:^{
                 self.transform = CGAffineTransformIdentity;
                 self.alpha = 1.0;
@@ -285,7 +316,6 @@
             if ([QPPrefs shared].haptic) {
                 if (@available(iOS 10.0, *)) {
                     UINotificationFeedbackGenerator *noti = [[UINotificationFeedbackGenerator alloc] init];
-                    [noti prepare];
                     [noti notificationOccurred:UINotificationFeedbackTypeSuccess];
                 }
             }
@@ -296,6 +326,7 @@
             break;
         }
         default:
+            _isDragging = NO;
             break;
     }
 }

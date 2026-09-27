@@ -3,11 +3,18 @@
 #import "shared/QPPrefs.h"
 #import "tweak/QPGlassButtonView.h"
 
+// Forward declarations of private iOS classes
+@interface SBUIBiometricResource : NSObject
+@property (getter=isMatchingAllowed, nonatomic, readonly) BOOL matchingAllowed;
+@property (getter=isMatchingEnabled, nonatomic, readonly) BOOL matchingEnabled;
+@property (getter=isFingerDetectionEnabledThroughHIDChannel, nonatomic, readonly) BOOL fingerDetectionEnabledThroughHIDChannel;
+@property (getter=isBackgroundFingerDetectionEnabled, nonatomic, readonly) BOOL backgroundFingerDetectionEnabled;
+@property (getter=isForegroundFingerDetectionEnabled, nonatomic, readonly) BOOL foregroundFingerDetectionEnabled;
+@end
+
 @interface SBUIPasscodeLockViewBase : UIView
 @property (nonatomic) BOOL usesBiometricPresentation;
 - (void)setKeypadVisible:(BOOL)arg1 animated:(BOOL)arg2;
-- (void)passcodeBiometricAuthenticationViewUsePasscodeButtonHit:(id)arg1;
-- (void)_overrideBiometricMatchingEnabled:(BOOL)arg1 forReason:(id)arg2;
 @end
 
 @interface CSPasscodeViewController : UIViewController
@@ -31,44 +38,93 @@
 - (void)lockScreenViewControllerRequestsUnlock;
 @end
 
-static BOOL gBypassFaceIDForQuickPass = NO;
+static BOOL gBypassBiometricsForQuickPass = NO;
 
 static inline void triggerPasscodeUnlock(CSCoverSheetViewController *csvc) {
-    gBypassFaceIDForQuickPass = YES;
+    // Flag to cleanly suppress Face ID & Touch ID matching
+    gBypassBiometricsForQuickPass = YES;
 
-    if (csvc) {
-        if ([csvc respondsToSelector:@selector(isPasscodeLockVisible)] && [csvc isPasscodeLockVisible]) {
-            return;
-        }
-        if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:forceBiometricPresentation:completion:)]) {
-            [csvc setPasscodeLockVisible:YES animated:NO forceBiometricPresentation:NO completion:nil];
-            return;
-        }
-        if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:completion:)]) {
-            [csvc setPasscodeLockVisible:YES animated:NO completion:nil];
-            return;
-        }
-        if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:)]) {
-            [csvc setPasscodeLockVisible:YES animated:NO];
-            return;
-        }
-    }
-
-    SBLockScreenManager *mgr = [NSClassFromString(@"SBLockScreenManager") sharedInstance];
-    if (mgr) {
-        if ([mgr respondsToSelector:@selector(coverSheetViewController)]) {
-            CSCoverSheetViewController *scvc = [mgr coverSheetViewController];
-            if (scvc && [scvc respondsToSelector:@selector(setPasscodeLockVisible:animated:)]) {
-                [scvc setPasscodeLockVisible:YES animated:NO];
+    // Dispatch unlock presentation on next runloop tick to allow touch handling & haptics to finish cleanly
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (csvc) {
+            if ([csvc respondsToSelector:@selector(isPasscodeLockVisible)] && [csvc isPasscodeLockVisible]) {
+                return;
+            }
+            if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:forceBiometricPresentation:completion:)]) {
+                [csvc setPasscodeLockVisible:YES animated:YES forceBiometricPresentation:NO completion:nil];
+                return;
+            }
+            if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:completion:)]) {
+                [csvc setPasscodeLockVisible:YES animated:YES completion:nil];
+                return;
+            }
+            if ([csvc respondsToSelector:@selector(setPasscodeLockVisible:animated:)]) {
+                [csvc setPasscodeLockVisible:YES animated:YES];
                 return;
             }
         }
-        if ([mgr respondsToSelector:@selector(lockScreenViewControllerRequestsUnlock)]) {
-            [mgr lockScreenViewControllerRequestsUnlock];
+
+        SBLockScreenManager *mgr = [NSClassFromString(@"SBLockScreenManager") sharedInstance];
+        if (mgr) {
+            if ([mgr respondsToSelector:@selector(coverSheetViewController)]) {
+                CSCoverSheetViewController *scvc = [mgr coverSheetViewController];
+                if (scvc && [scvc respondsToSelector:@selector(setPasscodeLockVisible:animated:)]) {
+                    [scvc setPasscodeLockVisible:YES animated:YES];
+                    return;
+                }
+            }
+            if ([mgr respondsToSelector:@selector(lockScreenViewControllerRequestsUnlock)]) {
+                [mgr lockScreenViewControllerRequestsUnlock];
+            }
         }
-    }
+    });
 }
 
+// -------------------------------------------------------------
+// Hook SBUIBiometricResource: Complete & Safe Bypass of Face ID / Touch ID
+// -------------------------------------------------------------
+%hook SBUIBiometricResource
+
+- (BOOL)isMatchingAllowed {
+    if (gBypassBiometricsForQuickPass) {
+        return NO;
+    }
+    return %orig;
+}
+
+- (BOOL)isMatchingEnabled {
+    if (gBypassBiometricsForQuickPass) {
+        return NO;
+    }
+    return %orig;
+}
+
+- (BOOL)isFingerDetectionEnabledThroughHIDChannel {
+    if (gBypassBiometricsForQuickPass) {
+        return NO;
+    }
+    return %orig;
+}
+
+- (BOOL)isBackgroundFingerDetectionEnabled {
+    if (gBypassBiometricsForQuickPass) {
+        return NO;
+    }
+    return %orig;
+}
+
+- (BOOL)isForegroundFingerDetectionEnabled {
+    if (gBypassBiometricsForQuickPass) {
+        return NO;
+    }
+    return %orig;
+}
+
+%end
+
+// -------------------------------------------------------------
+// Hook CSCoverSheetViewController: Button Management & Visibility
+// -------------------------------------------------------------
 %hook CSCoverSheetViewController
 
 - (void)viewDidLoad {
@@ -170,7 +226,7 @@ static inline void triggerPasscodeUnlock(CSCoverSheetViewController *csvc) {
 
 - (void)setPasscodeLockVisible:(BOOL)visible animated:(BOOL)animated {
     if (!visible) {
-        gBypassFaceIDForQuickPass = NO;
+        gBypassBiometricsForQuickPass = NO;
     }
     %orig(visible, animated);
     QPGlassButtonView *btn = (QPGlassButtonView *)[self.view viewWithTag:98927];
@@ -187,40 +243,28 @@ static inline void triggerPasscodeUnlock(CSCoverSheetViewController *csvc) {
 
 %end
 
+// -------------------------------------------------------------
+// Hook CSPasscodeViewController: Ensure numeric keypad presentation
+// -------------------------------------------------------------
 %hook CSPasscodeViewController
 
 - (BOOL)useBiometricPresentation {
-    if (gBypassFaceIDForQuickPass) {
+    if (gBypassBiometricsForQuickPass) {
         return NO;
     }
     return %orig;
 }
 
 - (void)setUseBiometricPresentation:(BOOL)val {
-    if (gBypassFaceIDForQuickPass) {
+    if (gBypassBiometricsForQuickPass) {
         %orig(NO);
         return;
     }
     %orig;
 }
 
-- (void)viewDidLoad {
-    if (gBypassFaceIDForQuickPass) {
-        if ([self respondsToSelector:@selector(setUseBiometricPresentation:)]) {
-            self.useBiometricPresentation = NO;
-        }
-        if ([self respondsToSelector:@selector(setShowProudLock:)]) {
-            self.showProudLock = NO;
-        }
-        if ([self respondsToSelector:@selector(setBiometricButtonsInitiallyVisible:)]) {
-            self.biometricButtonsInitiallyVisible = NO;
-        }
-    }
-    %orig;
-}
-
 - (void)viewWillAppear:(BOOL)animated {
-    if (gBypassFaceIDForQuickPass) {
+    if (gBypassBiometricsForQuickPass) {
         if ([self respondsToSelector:@selector(setUseBiometricPresentation:)]) {
             self.useBiometricPresentation = NO;
         }
@@ -232,60 +276,42 @@ static inline void triggerPasscodeUnlock(CSCoverSheetViewController *csvc) {
         }
     }
     %orig;
-    if (gBypassFaceIDForQuickPass) {
-        SBUIPasscodeLockViewBase *pView = nil;
+
+    if (gBypassBiometricsForQuickPass) {
         if ([self respondsToSelector:@selector(passcodeLockView)]) {
-            pView = [self passcodeLockView];
-        } else {
-            @try {
-                pView = [self valueForKey:@"_passcodeLockView"];
-            } @catch (__unused id ex) {}
-        }
-        if (pView) {
-            if ([pView respondsToSelector:@selector(setUsesBiometricPresentation:)]) {
-                pView.usesBiometricPresentation = NO;
-            }
-            if ([pView respondsToSelector:@selector(setKeypadVisible:animated:)]) {
+            SBUIPasscodeLockViewBase *pView = [self passcodeLockView];
+            if (pView && [pView respondsToSelector:@selector(setKeypadVisible:animated:)]) {
                 [pView setKeypadVisible:YES animated:NO];
             }
-            if ([pView respondsToSelector:@selector(passcodeBiometricAuthenticationViewUsePasscodeButtonHit:)]) {
-                [pView passcodeBiometricAuthenticationViewUsePasscodeButtonHit:nil];
-            }
-            [pView becomeFirstResponder];
         }
     }
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     %orig;
-    gBypassFaceIDForQuickPass = NO;
+    gBypassBiometricsForQuickPass = NO;
 }
 
 %end
 
+// -------------------------------------------------------------
+// Hook SBUIPasscodeLockViewBase: Biometric Presentation Switch
+// -------------------------------------------------------------
 %hook SBUIPasscodeLockViewBase
 
 - (BOOL)usesBiometricPresentation {
-    if (gBypassFaceIDForQuickPass) {
+    if (gBypassBiometricsForQuickPass) {
         return NO;
     }
     return %orig;
 }
 
-- (void)didMoveToWindow {
-    %orig;
-    if (gBypassFaceIDForQuickPass && self.window) {
-        if ([self respondsToSelector:@selector(setUsesBiometricPresentation:)]) {
-            self.usesBiometricPresentation = NO;
-        }
-        if ([self respondsToSelector:@selector(setKeypadVisible:animated:)]) {
-            [self setKeypadVisible:YES animated:NO];
-        }
-        if ([self respondsToSelector:@selector(passcodeBiometricAuthenticationViewUsePasscodeButtonHit:)]) {
-            [self passcodeBiometricAuthenticationViewUsePasscodeButtonHit:nil];
-        }
-        [self becomeFirstResponder];
+- (void)setUsesBiometricPresentation:(BOOL)val {
+    if (gBypassBiometricsForQuickPass) {
+        %orig(NO);
+        return;
     }
+    %orig;
 }
 
 %end
